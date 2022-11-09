@@ -1,0 +1,5 @@
+{
+  "editor.formatOnSave": true,
+  "js/ts.implicitProjectConfig.experimentalDecorators": true,
+  "eslint.codeActionsOnSave.rules": null
+}
