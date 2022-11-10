@@ -16,3 +16,9 @@ export const mockAccount: IAccount = {
 };
 
 export const mockAccounts: IAccount[] = [mockAccount];
+
+export const mockAccountEntity: AccountEntity = new AccountEntity(mockAccount);
+
+export const mockAccountsEntities: AccountEntity[] = mockAccounts.map(
+  (account) => new AccountEntity(account),
+);

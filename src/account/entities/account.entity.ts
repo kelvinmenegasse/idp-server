@@ -27,9 +27,9 @@ export class AccountEntity extends EntityM implements IAccount {
   password: string;
   recoveryKey: string | null;
   registerStatus: string;
-  createdAt: Date;
-  updatedAt: Date | null;
-  deletedAt: Date | null;
+  createdAt: Date | string | null;
+  updatedAt: Date | string | null;
+  deletedAt: Date | string | null;
 
   constructor(init?: Partial<IAccount | null>) {
     super();

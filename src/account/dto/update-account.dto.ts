@@ -7,33 +7,33 @@ import {
 } from 'class-validator';
 
 export class UpdateAccountDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  name: string;
+  name?: string;
 
   @IsOptional()
   @IsEmail()
-  email: string;
+  email?: string;
 
   @IsOptional()
   @IsString()
   cpf?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  username: string;
+  username?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MinLength(8)
-  password: string;
+  password?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MinLength(4)
-  recoveryKey: string;
+  recoveryKey?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  registerStatus: string;
+  registerStatus?: string;
 }

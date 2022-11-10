@@ -1,1 +1,1 @@
-export * from './account.controller';
+export * from './crud-account.controller';

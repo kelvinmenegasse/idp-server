@@ -1,12 +1,12 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { DatabaseModule } from '../infraestructure/database/database.module';
-import { AccountController } from './controllers/';
+import { CrudAccountController } from './controllers/';
 import { AccountRepository } from './repositories';
-import { AccountService } from './services/';
+import { CrudAccountService } from './services/';
 
 @Module({
   imports: [forwardRef(() => DatabaseModule)],
-  controllers: [AccountController],
-  providers: [AccountRepository, AccountService],
+  controllers: [CrudAccountController],
+  providers: [AccountRepository, CrudAccountService],
 })
 export class AccountModule {}
