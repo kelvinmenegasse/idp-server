@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAccountDto } from '../dto/create-account.dto';
-import { AccountEntity } from '../entities/account.entity';
+import { CreateAccountDto, UpdateAccountDto } from '../dto';
+import { AccountEntity, IAccount } from '../entities';
+import { AccountEntityMapper } from '../mappers';
 import { AccountRepository } from '../repositories';
 import { ACCOUNT_REGISTER_STATUS } from '../../shared/consts';
-import { Either, isLeft } from '../../shared/utility-types/either';
+import { Either, isLeft } from '../../shared/utility-types';
+import { isEmptyString } from '../../shared/fns';
 import { IDefaultError, InvalidParametersError } from '../../shared/errors';
 import { CpfValidateAndFilter } from '../../shared/common';
-import { Observable, map, catchError, of, concatMap } from 'rxjs';
+import { Observable, map, catchError, of, concatMap, tap } from 'rxjs';
 import {
   CreateAccountError,
   ExistsCpfError,
@@ -18,7 +20,6 @@ import {
   SoftDeleteAccountError,
   UpdateAccountError,
 } from '../errors';
-import { UpdateAccountDto } from 'src/account/dto';
 
 @Injectable()
 export class CrudAccountService {
@@ -28,16 +29,12 @@ export class CrudAccountService {
     data: Partial<CreateAccountDto>,
   ): Observable<Either<IDefaultError, AccountEntity>> {
     try {
-      // * SETUP
-      if (!data.name || data.name.trim() === '')
-        throw new Error('O nome é obrigatório.');
-      if (!data.password || data.password.trim() === '')
+      // * VALIDATIONS
+      if (isEmptyString(data.name)) throw new Error('O nome é obrigatório.');
+      if (isEmptyString(data.password))
         throw new Error('A senha é obrigatória.');
 
-      if (
-        (!data.username && !data.cpf) ||
-        (data.username.trim() === '' && data.cpf.trim() === '')
-      )
+      if (isEmptyString(data.username) && isEmptyString(data.cpf))
         throw new Error('O nome de usuário é obrigatório.');
 
       const account: AccountEntity = new AccountEntity(data);
@@ -53,8 +50,12 @@ export class CrudAccountService {
         account.cpf = cpfValidation.data;
       }
 
-      // * define username como cpf caso não seja informado
-      account.username = account.username ?? account.cpf;
+      // * SETUP
+      account.name = account.name.trim();
+      // * define username as cpf if username is empty
+      account.username = account.username
+        ? account.username.trim()
+        : account.cpf;
 
       return of({ right: account });
     } catch (error) {
@@ -65,11 +66,13 @@ export class CrudAccountService {
   }
 
   findOne(
-    params: Partial<AccountEntity>,
+    queryParams: Partial<AccountEntity>,
+    getInfoSafely = false,
   ): Observable<Either<IDefaultError, AccountEntity>> {
-    if (!params) of({ left: InvalidParametersError });
+    if (!queryParams) of({ left: InvalidParametersError });
 
-    return this.repo.findOne(params).pipe(
+    return this.repo.findOne(queryParams).pipe(
+      map((result) => new AccountEntityMapper().mapFrom(result, getInfoSafely)),
       map((account) => ({ right: account })),
       catchError((error) => {
         console.error(error);
@@ -78,28 +81,36 @@ export class CrudAccountService {
     );
   }
 
-  getById(id: number): Observable<Either<IDefaultError, AccountEntity>> {
+  getById(
+    id: number,
+    getInfoSafely = false,
+  ): Observable<Either<IDefaultError, AccountEntity>> {
     return this.repo.getById(id).pipe(
-      map((result) => ({ right: result })),
+      map((result) => new AccountEntityMapper().mapFrom(result, getInfoSafely)),
+      map((account) => ({ right: account })),
       catchError((_error) => of({ left: GetAccountError })),
     );
   }
 
   getMany(
-    params: Partial<AccountEntity>,
+    queryParams: Partial<AccountEntity>,
+    getInfoSafely = false,
   ): Observable<Either<IDefaultError, AccountEntity[]>> {
-    return this.repo.getMany(params).pipe(
+    return this.repo.getMany(queryParams).pipe(
       map((result) => ({ right: result })),
       catchError((_error) => of({ left: GetAccountError })),
     );
   }
 
-  findUsernameOrCpf(params: {
+  findUsernameOrCpf(queryParams: {
     username?: string;
     cpf?: string;
   }): Observable<Either<IDefaultError, AccountEntity>> {
     return this.repo
-      .findUsernameOrCpf({ username: params.username, cpf: params.cpf })
+      .findUsernameOrCpf({
+        username: queryParams.username,
+        cpf: queryParams.cpf,
+      })
       .pipe(
         map((account) => (account ? { right: account } : { right: null })),
         catchError((_error) => of({ left: GetAccountError })),
@@ -108,6 +119,7 @@ export class CrudAccountService {
 
   create(
     createAccountDto: Partial<CreateAccountDto>,
+    getInfoSafely = false,
   ): Observable<Either<IDefaultError, AccountEntity>> {
     return this.setupNewAccount(createAccountDto).pipe(
       concatMap((setupNewAccountResult) => {
@@ -126,12 +138,17 @@ export class CrudAccountService {
           }),
         );
       }),
-      concatMap((setupNewAccountResult) =>
-        this.repo.create(setupNewAccountResult.right.getAccountInfo()).pipe(
-          map((result) => ({ right: result })),
-          catchError((_error) => of({ left: CreateAccountError })),
-        ),
-      ),
+      concatMap((setupNewAccountResult) => {
+        return this.repo
+          .create(setupNewAccountResult.right.getAccountInfo() as IAccount)
+          .pipe(
+            map((result) =>
+              new AccountEntityMapper().mapFrom(result, getInfoSafely),
+            ),
+            map((account) => ({ right: account })),
+            catchError((_error) => of({ left: CreateAccountError })),
+          );
+      }),
       catchError((error) =>
         of({
           left: {
@@ -146,56 +163,58 @@ export class CrudAccountService {
   update(
     id: number,
     updateAccountDto: UpdateAccountDto,
+    getInfoSafely = false,
   ): Observable<Either<IDefaultError, AccountEntity>> {
     if (!id) return of({ left: InvalidParametersError });
-    return this.repo.findOne({ id }).pipe(
+    return this.repo.findOne({ id: Number(id) }).pipe(
       map((account) => {
+        if (!account) throw new Error('Conta não encontrada.');
         if (
           'name' in updateAccountDto &&
           (updateAccountDto.name.trim() === '' ||
             updateAccountDto.name === null)
         )
           throw new Error('Nome inválido.');
-        if (!account) throw new Error('Conta não encontrada.');
         return account;
       }),
       concatMap((account) => {
-        if (updateAccountDto.username) {
-          return this.findUsernameOrCpf({
-            username: updateAccountDto.username,
-          }).pipe(
-            map((res) => {
-              if (isLeft(res)) throw new Error(res.left.message as string);
-              if (res.right && res.right.id !== account.id)
-                throw new Error(ExistsUsernameError.message as string);
-              return account;
-            }),
-          );
-        }
+        if (!updateAccountDto.username) return of(account);
+        return this.findUsernameOrCpf({
+          username: updateAccountDto.username,
+        }).pipe(
+          map((res) => {
+            if (isLeft(res)) throw new Error(res.left.message as string);
+            if (res.right && Number(res.right.id) !== Number(account.id))
+              throw new Error(ExistsUsernameError.message as string);
+            return account;
+          }),
+        );
       }),
       concatMap((account) => {
-        if (updateAccountDto.cpf) {
-          const cpfValidation = CpfValidateAndFilter(updateAccountDto.cpf);
-          // * CPF invalido
-          if (cpfValidation.type !== 'success') {
-            throw new Error(cpfValidation.message);
-          }
-          updateAccountDto.cpf = cpfValidation.data;
-          return this.findUsernameOrCpf({
-            cpf: updateAccountDto.cpf,
-          }).pipe(
-            map((res) => {
-              if (isLeft(res)) throw new Error(res.left.message as string);
-              if (res.right && res.right.id !== account.id)
-                throw new Error(ExistsCpfError.message as string);
-              return account;
-            }),
-          );
+        if (!updateAccountDto.cpf) return of(account);
+        const cpfValidation = CpfValidateAndFilter(updateAccountDto.cpf);
+        // * CPF invalido
+        if (cpfValidation.type !== 'success') {
+          throw new Error(cpfValidation.message);
         }
+        updateAccountDto.cpf = cpfValidation.data;
+        return this.findUsernameOrCpf({
+          cpf: updateAccountDto.cpf,
+        }).pipe(
+          map((res) => {
+            if (isLeft(res)) throw new Error(res.left.message as string);
+            if (res.right && res.right.id !== account.id)
+              throw new Error(ExistsCpfError.message as string);
+            return account;
+          }),
+        );
       }),
       concatMap((account) => {
         return this.repo.update(account.id, updateAccountDto).pipe(
-          map((result) => ({ right: result })),
+          map((result) =>
+            new AccountEntityMapper().mapFrom(result, getInfoSafely),
+          ),
+          map((account) => ({ right: account })),
           catchError((_error) => of({ left: UpdateAccountError })),
         );
       }),
@@ -210,26 +229,29 @@ export class CrudAccountService {
     );
   }
 
-  softDelete(id: number): Observable<any> {
+  softDelete(id: number, getInfoSafely = false): Observable<any> {
     if (!id) return of({ left: InvalidParametersError });
     return this.repo.softDelete(id).pipe(
-      map((result) => ({ right: result })),
+      map((result) => new AccountEntityMapper().mapFrom(result, getInfoSafely)),
+      map((account) => ({ right: account })),
       catchError((_error) => of({ left: SoftDeleteAccountError })),
     );
   }
 
-  restore(id: number): Observable<any> {
+  restore(id: number, getInfoSafely = false): Observable<any> {
     if (!id) return of({ left: InvalidParametersError });
     return this.repo.restore(id).pipe(
-      map((result) => ({ right: result })),
+      map((result) => new AccountEntityMapper().mapFrom(result, getInfoSafely)),
+      map((account) => ({ right: account })),
       catchError((_error) => of({ left: RestoreAccountError })),
     );
   }
 
-  hardDelete(id: number): Observable<any> {
+  hardDelete(id: number, getInfoSafely = false): Observable<any> {
     if (!id) return of({ left: InvalidParametersError });
     return this.repo.hardDelete(id).pipe(
-      map((result) => ({ right: result })),
+      map((result) => new AccountEntityMapper().mapFrom(result, getInfoSafely)),
+      map((account) => ({ right: account })),
       catchError((_error) => of({ left: HardDeleteAccountError })),
     );
   }

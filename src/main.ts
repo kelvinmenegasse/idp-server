@@ -24,7 +24,11 @@ async function bootstrap() {
   // * All IP addresses on the local machine
   await app.listen(configService.get('app.port'), '0.0.0.0');
 
-  console.log(`SERVER IS RUNNING ON PORT ${configService.get('app.port')}`);
+  console.log(
+    `Server ${configService.get(
+      'app.apiPrefix',
+    )} is running on port ${configService.get('app.port')}`,
+  );
 }
 
 bootstrap();

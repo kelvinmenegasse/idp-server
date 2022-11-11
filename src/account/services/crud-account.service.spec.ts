@@ -4,8 +4,8 @@ import { mockAccount, mockAccounts } from '../mocks';
 import { CrudAccountService } from './crud-account.service';
 import { of } from 'rxjs';
 import { AccountEntity } from '../entities';
-import { ACCOUNT_REGISTER_STATUS } from '../../shared/consts';
-import { CreateAccountDto } from '../dto/create-account.dto';
+import { ACCOUNT_REGISTER_STATUS } from 'src/shared/consts';
+import { CreateAccountDto } from '../dto';
 
 describe('CrudAccountService', () => {
   // * MOCKS
@@ -90,7 +90,6 @@ describe('CrudAccountService', () => {
       });
     });
   });
-
   describe('setup new account', () => {
     it('should return a new account', (done) => {
       // * Act
@@ -220,6 +219,34 @@ describe('CrudAccountService', () => {
       const restoreId = null;
       // * Act
       service.restore(restoreId).subscribe({
+        next: (result) => {
+          // * Assert
+          expect(result).toHaveProperty('left');
+        },
+        complete: () => done(),
+      });
+    });
+  });
+
+  describe('hard delete', () => {
+    it('should delete permanently an account', (done) => {
+      // * Arrange
+      const hardDeleteId: number = account.id as number;
+      // * Act
+      service.hardDelete(hardDeleteId).subscribe({
+        next: (result) => {
+          // * Assert
+          expect(result).toHaveProperty('right');
+        },
+        complete: () => done(),
+      });
+    });
+
+    it('should not restore an account', (done) => {
+      // * Arrange
+      const hardDeleteId = null;
+      // * Act
+      service.hardDelete(hardDeleteId).subscribe({
         next: (result) => {
           // * Assert
           expect(result).toHaveProperty('left');

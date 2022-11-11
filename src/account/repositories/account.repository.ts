@@ -12,7 +12,7 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
 
   create(data: IAccount): Observable<AccountEntity> {
     return from(this.database.account.create({ data })).pipe(
-      map((account) => new AccountEntity(account)),
+      map((account) => (account ? new AccountEntity(account) : null)),
       catchError((err) => {
         throw new Error(err);
       }),
@@ -21,7 +21,7 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
 
   findOne(params: Partial<AccountEntity>): Observable<AccountEntity> {
     return from(this.database.account.findUnique({ where: params })).pipe(
-      map((account) => new AccountEntity(account)),
+      map((account) => (account ? new AccountEntity(account) : null)),
       catchError((err) => {
         throw new Error(err);
       }),
@@ -57,14 +57,14 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
     );
   }
 
-  update(id: number, data: Partial<AccountEntity>): Observable<AccountEntity> {
+  update(id: number, data: Partial<IAccount>): Observable<AccountEntity> {
     return from(
       this.database.account.update({
         where: { id },
         data,
       }),
     ).pipe(
-      map((account) => new AccountEntity(account)),
+      map((account) => (account ? new AccountEntity(account) : null)),
       catchError((err) => {
         throw new Error(err);
       }),
@@ -73,7 +73,7 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
 
   getById(id: number): Observable<AccountEntity> {
     return from(this.database.account.findUnique({ where: { id } })).pipe(
-      map((account) => new AccountEntity(account)),
+      map((account) => (account ? new AccountEntity(account) : null)),
       catchError((err) => {
         throw new Error(err);
       }),
@@ -91,7 +91,7 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
 
   getOne(filter: Partial<AccountEntity>): Observable<AccountEntity> {
     return from(this.database.account.findUnique({ where: filter })).pipe(
-      map((account) => new AccountEntity(account)),
+      map((account) => (account ? new AccountEntity(account) : null)),
       catchError((err) => {
         throw new Error(err);
       }),
@@ -114,7 +114,7 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
         account.deletedAt = new Date();
 
         return this.update(id, account).pipe(
-          map((account) => new AccountEntity(account)),
+          map((account) => (account ? new AccountEntity(account) : null)),
           catchError((err) => {
             throw new Error(err);
           }),
@@ -130,7 +130,7 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
         account.deletedAt = null;
 
         return this.update(id, account).pipe(
-          map((account) => new AccountEntity(account)),
+          map((account) => (account ? new AccountEntity(account) : null)),
           catchError((err) => {
             throw new Error(err);
           }),
@@ -141,7 +141,7 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
 
   hardDelete(id: number): Observable<AccountEntity> {
     return from(this.database.account.delete({ where: { id } })).pipe(
-      map((account) => new AccountEntity(account)),
+      map((account) => (account ? new AccountEntity(account) : null)),
       catchError((err) => {
         throw new Error(err);
       }),

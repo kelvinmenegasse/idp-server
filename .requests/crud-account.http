@@ -1,0 +1,43 @@
+### ACCOUNT ADMINISTRATION FOR ADMINS
+
+### Get all
+POST /idp-api/accounts/get-all HTTP/1.1
+Host: localhost:3001
+
+{
+    "registerStatus": "active",
+}
+
+### Create
+POST /idp-api/accounts/create HTTP/1.1
+Host: localhost:3001
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "email": "test@test.com",
+    "password": "test",
+    "name": "test"
+}
+
+
+### Update
+PATCH /idp-api/accounts/update/1 HTTP/1.1
+Host: localhost:3001
+Content-Type: application/json
+
+{
+    "username": "test",
+    "email": "test@test.com",
+    "password": "test",
+    "name": "test 2"
+}
+
+### Remove
+PATCH /idp-api/account/remove/2 HTTP/1.1
+Host: localhost:3001
+
+### Permanently Delete
+POST /idp-api/account/delete/2 HTTP/1.1
+Host: localhost:3001
+Authorization: Bearer 

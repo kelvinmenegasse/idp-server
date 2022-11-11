@@ -60,13 +60,16 @@ export class AccountEntity extends EntityM implements IAccount {
     return of(key);
   }
 
-  public getPublicAccountInfo(): IPublicAccount {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, recoveryKey, ...account } = this;
-    return account;
-  }
-
-  public getAccountInfo(): IAccount {
+  // * getInfoSafely is a flag to return a public version of the account
+  public getAccountInfo(
+    params: { getInfoSafely: boolean } = null,
+  ): IAccount | IPublicAccount {
+    if (params) {
+      if (params.getInfoSafely) {
+        const { password, recoveryKey, ...account } = this;
+        return account;
+      }
+    }
     return this;
   }
 }
