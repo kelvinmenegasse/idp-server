@@ -1,0 +1,5 @@
+### ACCOUNT ADMINISTRATION FOR ADMINS
+
+### teste
+GET /idp-api/auth/local/signup HTTP/1.1
+Host: localhost:3001

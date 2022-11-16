@@ -23,8 +23,41 @@ model Account {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime? @updatedAt
   deletedAt      DateTime?
+  RtToken        RtToken[]
 
   // ? name of the table mapped to this model
   // ? optional
   @@map("account")
+}
+
+model RtToken {
+  id        Int     @id @default(autoincrement())
+  account   Account @relation(fields: [accountId], references: [id])
+  accountId Int // ? relation scalar field  (used in the `@relation` attribute above)
+
+  hashedRt String @db.VarChar(190) // ? refresh token hashed
+
+  exp DateTime // ? expiration date, when the token will be invalid
+
+  iat DateTime // ? issued at, creation date
+
+  aud String? @db.VarChar(190) // ? audience, who the token is for
+
+  ip String? @db.VarChar(190) // ? ip address of the client
+
+  platform String? @db.VarChar(190) // ? platform of the client
+
+  browserBrand String? @db.VarChar(190) // ? browser brand of the client
+
+  userAgent String? @db.VarChar(190) // ? user agent of the client
+
+  registerStatus String @db.VarChar(190) // ? token status, if it's valid or not (revoked)
+
+  lastUsedAt DateTime? // ? last time the token was used
+
+  deletedAt DateTime? // ? deleted at, when the token was revoked by the user or the server (logout)
+
+  // ? name of the table mapped to this model
+  // ? optional
+  @@map("rt_token")
 }

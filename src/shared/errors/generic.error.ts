@@ -1,5 +1,5 @@
 export interface IDefaultError {
-  name: string;
+  name?: string;
   message: string | unknown;
 }
 

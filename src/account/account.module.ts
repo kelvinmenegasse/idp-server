@@ -7,6 +7,7 @@ import { CrudAccountService } from './services/';
 @Module({
   imports: [forwardRef(() => DatabaseModule)],
   controllers: [CrudAccountController],
+  exports: [CrudAccountService],
   providers: [AccountRepository, CrudAccountService],
 })
 export class AccountModule {}
