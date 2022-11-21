@@ -183,7 +183,7 @@ describe('AccountRepository', () => {
             where: { id },
             data: Object.assign(mockAccount, {
               deletedAt: expect.any(Date),
-              registerStatus: ACCOUNT_REGISTER_STATUS.DELETED,
+              registerStatus: ACCOUNT_REGISTER_STATUS.REMOVED,
             }),
           });
         },

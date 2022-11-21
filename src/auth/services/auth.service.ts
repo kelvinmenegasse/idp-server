@@ -11,6 +11,7 @@ import { Either, isLeft } from 'src/shared/utility-types';
 import { IDefaultError } from 'src/shared/errors';
 import { concat } from 'rxjs/operators';
 import { GetAccountError } from 'src/account/errors';
+import { RequestClientInfo } from 'src/shared/types';
 
 @Injectable()
 export class AuthService {
@@ -21,16 +22,20 @@ export class AuthService {
     private rtTokenService: RtTokenService,
   ) {}
 
-  signupLocal(signupDto: SignupDto): Observable<Either<IDefaultError, Tokens>> {
+  signupLocal(
+    signupDto: SignupDto,
+    clientInfo?: RequestClientInfo,
+  ): Observable<Either<IDefaultError, Tokens>> {
     return this.accountService.create(signupDto).pipe(
       map((result) => {
-        if (isLeft(result)) throw new Error('Falha ao criar conta');
+        if (isLeft(result)) throw new Error(result.left.message as string);
         return result.right;
       }),
       concatMap((account) =>
         this.getTokens(account.id, account.username).pipe(
           map((resultTokens) => {
-            if (isLeft(resultTokens)) throw new Error('Falha ao criar tokens');
+            if (isLeft(resultTokens))
+              throw new Error(resultTokens.left.message as string);
             return { account: account, tokens: resultTokens.right };
           }),
         ),
@@ -41,7 +46,7 @@ export class AuthService {
           .pipe(
             map((resultRtToken) => {
               if (isLeft(resultRtToken))
-                throw new Error('Falha ao criar tokens');
+                throw new Error(resultRtToken.left.message as string);
               return { right: result.tokens };
             }),
           );
@@ -71,7 +76,7 @@ export class AuthService {
           this.getTokens(account.id, account.username).pipe(
             map((resultTokens) => {
               if (isLeft(resultTokens))
-                throw new Error('Falha ao criar tokens');
+                throw new Error(resultTokens.left.message as string);
               return { account: account, tokens: resultTokens.right };
             }),
           ),
@@ -85,7 +90,7 @@ export class AuthService {
             .pipe(
               map((resultRtToken) => {
                 if (isLeft(resultRtToken))
-                  throw new Error('Falha ao criar tokens');
+                  throw new Error(resultRtToken.left.message as string);
                 return { right: result.tokens };
               }),
             );

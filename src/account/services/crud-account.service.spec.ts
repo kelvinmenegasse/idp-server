@@ -31,7 +31,7 @@ describe('CrudAccountService', () => {
     softDelete: jest.fn().mockReturnValue(
       of(
         Object.assign(account, {
-          registerStatus: ACCOUNT_REGISTER_STATUS.DELETED,
+          registerStatus: ACCOUNT_REGISTER_STATUS.REMOVED,
           deletedAt: new Date().toUTCString(),
         } as AccountEntity),
       ),

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { RtTokenRepository } from '../repositories';
 import { Either, isLeft } from '../../shared/utility-types';
-import { isEmptyString } from '../../shared/fns';
+import { isEmptyString } from '../../shared/common';
 import { GenericError, IDefaultError } from '../../shared/errors';
 import { catchError, map, Observable, of } from 'rxjs';
 import { IRtToken, RtTokenEntity } from '../entities';

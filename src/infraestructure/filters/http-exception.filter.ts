@@ -3,34 +3,31 @@ import {
   Catch,
   ArgumentsHost,
   HttpStatus,
+  HttpException,
 } from '@nestjs/common';
-import { DefaultException } from '../errors';
-
+import { IDefaultError } from 'src/shared/errors';
+import { Either } from 'src/shared/utility-types';
 @Catch()
 export class AllExceptionFilter implements ExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
-    // const request = ctx.getRequest();
+    const request = ctx.getRequest();
+    const status = exception.getStatus();
 
-    const error = new DefaultException(
-      {
-        name:
-          exception instanceof DefaultException
-            ? exception.name
-            : 'SERVER_ERROR',
-        message:
-          exception instanceof DefaultException
-            ? exception.getResponse()
-            : exception,
-      },
-      exception instanceof DefaultException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR,
-    );
+    const exceptionJson =
+      exception instanceof HttpException ? exception.getResponse() : exception;
 
-    console.error(exception);
+    console.log(exceptionJson);
 
-    response.status(error.getStatus()).json(error.getJson());
+    const responseError: Either<IDefaultError, any> = {
+      left: {
+        statusCode: status,
+        name: exception.name,
+        message: exceptionJson.message,
+      } as IDefaultError,
+    };
+
+    response.status(status).json(responseError);
   }
 }

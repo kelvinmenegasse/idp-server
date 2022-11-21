@@ -6,32 +6,32 @@ export type IRtToken = {
   id?: number;
   accountId: number;
   hashedRt: string;
-  exp: Date;
-  iat: Date;
+  exp: Date | string | null;
+  iat: Date | string | null;
   aud: string | null;
   ip: string | null;
   platform: string | null;
   browserBrand: string | null;
   userAgent: string | null;
   registerStatus: string;
-  lastUsedAt: Date | null;
-  deletedAt: Date | null;
+  lastUsedAt: Date | string | null;
+  deletedAt: Date | string | null;
 };
 
 export class RtTokenEntity extends EntityM implements IRtToken {
-  id: number;
+  id?: number;
   accountId: number;
   hashedRt: string;
-  exp: Date;
-  iat: Date;
+  exp: Date | string | null;
+  iat: Date | string | null;
   aud: string | null;
   ip: string | null;
   platform: string | null;
   browserBrand: string | null;
   userAgent: string | null;
   registerStatus: string;
-  lastUsedAt: Date | null;
-  deletedAt: Date | null;
+  lastUsedAt: Date | string | null;
+  deletedAt: Date | string | null;
 
   constructor(init?: Partial<IRtToken | null>) {
     super();

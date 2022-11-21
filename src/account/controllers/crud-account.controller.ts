@@ -29,7 +29,7 @@ export class CrudAccountController {
   getById(
     @Param('id') id: number,
   ): Observable<Either<IDefaultError, IPublicAccount>> {
-    return this.crudAccountService.getById(id);
+    return this.crudAccountService.getById(Number(id));
   }
 
   @Post('get-one')
@@ -51,27 +51,27 @@ export class CrudAccountController {
     @Param('id') id: number,
     @Body() updateAccountDto: UpdateAccountDto,
   ): Observable<Either<IDefaultError, IPublicAccount>> {
-    return this.crudAccountService.update(id, updateAccountDto);
+    return this.crudAccountService.update(Number(id), updateAccountDto);
   }
 
-  @Patch('soft-delete/:id')
+  @Patch('remove/:id')
   softDelete(
     @Param('id') id: number,
   ): Observable<Either<IDefaultError, IPublicAccount>> {
-    return this.crudAccountService.softDelete(id);
+    return this.crudAccountService.softDelete(Number(id));
   }
 
   @Patch('restore/:id')
   restore(
     @Param('id') id: number,
   ): Observable<Either<IDefaultError, IPublicAccount>> {
-    return this.crudAccountService.restore(id);
+    return this.crudAccountService.restore(Number(id));
   }
 
-  @Delete('soft-delete/:id')
+  @Delete('hard-delete/:id')
   hardDelete(
     @Param('id') id: number,
   ): Observable<Either<IDefaultError, IPublicAccount>> {
-    return this.crudAccountService.hardDelete(id);
+    return this.crudAccountService.hardDelete(Number(id));
   }
 }

@@ -18,7 +18,7 @@ describe('CrudAccountController', () => {
     softDelete: jest.fn().mockReturnValue(
       of({
         right: Object.assign(mockAccountEntity, {
-          registerStatus: ACCOUNT_REGISTER_STATUS.DELETED,
+          registerStatus: ACCOUNT_REGISTER_STATUS.REMOVED,
           deletedAt: new Date().toUTCString(),
         } as AccountEntity),
       }),
@@ -194,7 +194,7 @@ describe('CrudAccountController', () => {
         next: (data) => {
           // * Assert
           const mockAccountEntitySoftDelete = Object.assign(mockAccountEntity, {
-            registerStatus: ACCOUNT_REGISTER_STATUS.DELETED,
+            registerStatus: ACCOUNT_REGISTER_STATUS.REMOVED,
             deletedAt: new Date().toISOString(),
           } as AccountEntity);
           expect(data).toHaveProperty('right');

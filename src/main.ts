@@ -3,6 +3,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { AllExceptionFilter } from './infraestructure/filters';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   // * CORS
@@ -17,6 +18,9 @@ async function bootstrap() {
   app.setGlobalPrefix(configService.get('app.apiPrefix'), {
     exclude: ['/'],
   });
+
+  // * VALIDATION PIPE
+  app.useGlobalPipes(new ValidationPipe());
 
   // * EXCEPTION FILTER
   app.useGlobalFilters(new AllExceptionFilter());

@@ -3,7 +3,7 @@ import { PrismaService } from '../../infraestructure/database';
 import { AccountEntity, IAccount } from '../entities';
 import { RepositoryM } from '../../shared/base';
 import { ACCOUNT_REGISTER_STATUS } from '../../shared/consts';
-import { catchError, from, map, Observable, switchMap } from 'rxjs';
+import { catchError, from, map, Observable, concatMap, tap } from 'rxjs';
 import { Account } from '@prisma/client';
 
 @Injectable()
@@ -109,10 +109,9 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
 
   softDelete(id: number): Observable<AccountEntity> {
     return this.getById(id).pipe(
-      switchMap((account: AccountEntity) => {
-        account.registerStatus = ACCOUNT_REGISTER_STATUS.DELETED;
+      concatMap((account: AccountEntity) => {
+        account.registerStatus = ACCOUNT_REGISTER_STATUS.REMOVED;
         account.deletedAt = new Date();
-
         return this.update(id, account).pipe(
           map((account) => (account ? new AccountEntity(account) : null)),
           catchError((err) => {
@@ -125,7 +124,7 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
 
   restore(id: number): Observable<AccountEntity> {
     return this.getById(id).pipe(
-      switchMap((account: AccountEntity) => {
+      concatMap((account: AccountEntity) => {
         account.registerStatus = ACCOUNT_REGISTER_STATUS.ACTIVE;
         account.deletedAt = null;
 

@@ -34,10 +34,13 @@ Content-Type: application/json
 }
 
 ### Remove
-PATCH /idp-api/account/remove/2 HTTP/1.1
+PATCH /idp-api/accounts/remove/2 HTTP/1.1
+Host: localhost:3001
+
+### Restore
+PATCH /idp-api/accounts/restore/2 HTTP/1.1
 Host: localhost:3001
 
 ### Permanently Delete
-POST /idp-api/account/delete/2 HTTP/1.1
+DELETE /idp-api/accounts/hard-delete/1 HTTP/1.1
 Host: localhost:3001
-Authorization: Bearer 

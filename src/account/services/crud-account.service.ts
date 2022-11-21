@@ -5,7 +5,7 @@ import { AccountEntityMapper } from '../mappers';
 import { AccountRepository } from '../repositories';
 import { ACCOUNT_REGISTER_STATUS } from '../../shared/consts';
 import { Either, isLeft } from '../../shared/utility-types';
-import { isEmptyString } from '../../shared/fns';
+import { isEmptyString } from '../../shared/common';
 import { IDefaultError, InvalidParametersError } from '../../shared/errors';
 import { CpfValidateAndFilter } from '../../shared/common';
 import { Observable, map, catchError, of, concatMap, tap } from 'rxjs';
@@ -234,7 +234,10 @@ export class CrudAccountService {
     return this.repo.softDelete(id).pipe(
       map((result) => new AccountEntityMapper().mapFrom(result, getInfoSafely)),
       map((account) => ({ right: account })),
-      catchError((_error) => of({ left: SoftDeleteAccountError })),
+      catchError((_error) => {
+        console.log(_error);
+        return of({ left: SoftDeleteAccountError });
+      }),
     );
   }
 

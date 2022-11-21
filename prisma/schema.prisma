@@ -41,8 +41,6 @@ model RtToken {
 
   iat DateTime // ? issued at, creation date
 
-  aud String? @db.VarChar(190) // ? audience, who the token is for
-
   ip String? @db.VarChar(190) // ? ip address of the client
 
   platform String? @db.VarChar(190) // ? platform of the client

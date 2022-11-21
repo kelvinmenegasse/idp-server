@@ -18,6 +18,7 @@ import {
   GetCurrentAccount,
   GetCurrentAccountId,
   GetRequestClientInfo,
+  Roles,
 } from '../../shared/decorators';
 import { RtGuard, AtGuard } from '../../shared/guards';
 import { SigninDto, SignupDto } from '../dto';
@@ -29,22 +30,22 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Public()
-  @Get('local/signup')
+  @Post('signup')
   @HttpCode(HttpStatus.CREATED)
   signupLocal(
-    @Body() dto: SignupDto,
+    @Body() signupDto: SignupDto,
     @GetRequestClientInfo() clientInfo: RequestClientInfo,
   ): any {
-    return this.authService.signupLocal(dto);
+    return this.authService.signupLocal(signupDto, clientInfo);
   }
 
   @Public()
   @Post('local/signin')
   @HttpCode(HttpStatus.OK)
   signinLocal(
-    @Body() dto: SigninDto,
+    @Body() signinDto: SigninDto,
   ): Observable<Either<IDefaultError, Tokens>> {
-    return this.authService.signinLocal(dto);
+    return this.authService.signinLocal(signinDto);
   }
 
   // todo
@@ -64,5 +65,6 @@ export class AuthController {
     @GetCurrentAccount('refreshToken') refreshToken: string,
   ): Promise<Tokens> {
     return this.authService.refreshTokens(accountId, refreshToken); 
-  }*/
+  }
+  */
 }
