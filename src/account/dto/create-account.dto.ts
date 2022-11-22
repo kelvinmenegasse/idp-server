@@ -28,7 +28,7 @@ export class CreateAccountDto {
   @MinLength(8)
   password: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  registerStatus: string;
+  registerStatus?: string;
 }

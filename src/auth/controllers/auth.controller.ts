@@ -23,7 +23,7 @@ import {
 import { RtGuard, AtGuard } from '../../shared/guards';
 import { SigninDto, SignupDto } from '../dto';
 import { AuthService } from '../services';
-import { Tokens } from '../types';
+import { Tokens } from 'src/shared/types';
 
 @Controller('auth')
 export class AuthController {
@@ -34,6 +34,7 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   signupLocal(
     @Body() signupDto: SignupDto,
+    @GetCurrentAccount() account: any,
     @GetRequestClientInfo() clientInfo: RequestClientInfo,
   ): any {
     return this.authService.signupLocal(signupDto, clientInfo);
@@ -44,8 +45,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   signinLocal(
     @Body() signinDto: SigninDto,
+    @GetCurrentAccount() account: any,
+    @GetRequestClientInfo() clientInfo: RequestClientInfo,
   ): Observable<Either<IDefaultError, Tokens>> {
-    return this.authService.signinLocal(signinDto);
+    return this.authService.signinLocal(signinDto, clientInfo);
   }
 
   // todo

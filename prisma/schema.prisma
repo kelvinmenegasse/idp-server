@@ -31,15 +31,15 @@ model Account {
 }
 
 model RtToken {
-  id        Int     @id @default(autoincrement())
-  account   Account @relation(fields: [accountId], references: [id])
+  id        Int      @id @default(autoincrement())
+  account   Account? @relation(fields: [accountId], references: [id])
   accountId Int // ? relation scalar field  (used in the `@relation` attribute above)
 
   hashedRt String @db.VarChar(190) // ? refresh token hashed
 
-  exp DateTime // ? expiration date, when the token will be invalid
+  exp DateTime? // ? expiration date, when the token will be invalid
 
-  iat DateTime // ? issued at, creation date
+  iat DateTime? // ? issued at, creation date
 
   ip String? @db.VarChar(190) // ? ip address of the client
 

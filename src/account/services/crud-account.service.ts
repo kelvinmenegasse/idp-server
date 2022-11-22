@@ -234,10 +234,7 @@ export class CrudAccountService {
     return this.repo.softDelete(id).pipe(
       map((result) => new AccountEntityMapper().mapFrom(result, getInfoSafely)),
       map((account) => ({ right: account })),
-      catchError((_error) => {
-        console.log(_error);
-        return of({ left: SoftDeleteAccountError });
-      }),
+      catchError((_error) => of({ left: SoftDeleteAccountError })),
     );
   }
 

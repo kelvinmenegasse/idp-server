@@ -6,9 +6,9 @@ Host: localhost:3001
 Content-Type: application/json
 
 {
-    "username": "admin",
-    "email": "test@test.com",
-    "password": "test",
+    "username": "kelvin",
+    "email": "admin@test.com",
+    "password": "test1234",
     "name": "test"
 }
 
@@ -18,6 +18,6 @@ Host: localhost:3001
 Content-Type: application/json
 
 {
-    "username": "admin",
-    "password": "test"
+    "username": "test",
+    "password": "test1234"
 }

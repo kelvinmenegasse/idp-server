@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload, Tokens } from '../types';
+import { JwtPayload, Tokens } from 'src/shared/types';
 import { CrudAccountService } from 'src/account/services';
 import { RtTokenService } from '../services';
 import { SigninDto, SignupDto } from '../dto';
@@ -9,7 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { catchError, concatMap, map, Observable, of, zip } from 'rxjs';
 import { Either, isLeft } from 'src/shared/utility-types';
 import { IDefaultError } from 'src/shared/errors';
-import { concat } from 'rxjs/operators';
+import { concat, tap } from 'rxjs/operators';
 import { GetAccountError } from 'src/account/errors';
 import { RequestClientInfo } from 'src/shared/types';
 
@@ -42,7 +42,16 @@ export class AuthService {
       ),
       concatMap((result) => {
         return this.rtTokenService
-          .create({ accountId: result.account.id }, result.tokens.refresh_token)
+          .create(
+            {
+              accountId: result.account.id,
+              browserBrand: clientInfo?.browserBrand,
+              ip: clientInfo?.ip,
+              platform: clientInfo?.platform,
+              userAgent: clientInfo?.userAgent,
+            },
+            result.tokens.refresh_token,
+          )
           .pipe(
             map((resultRtToken) => {
               if (isLeft(resultRtToken))
@@ -57,7 +66,10 @@ export class AuthService {
     );
   }
 
-  signinLocal(signinDto: SigninDto): Observable<Either<IDefaultError, Tokens>> {
+  signinLocal(
+    signinDto: SigninDto,
+    clientInfo?: RequestClientInfo,
+  ): Observable<Either<IDefaultError, Tokens>> {
     return this.accountService
       .findUsernameOrCpf({
         username: signinDto.username,
@@ -84,7 +96,13 @@ export class AuthService {
         concatMap((result) => {
           return this.rtTokenService
             .create(
-              { accountId: result.account.id },
+              {
+                accountId: result.account.id,
+                browserBrand: clientInfo?.browserBrand,
+                ip: clientInfo?.ip,
+                platform: clientInfo?.platform,
+                userAgent: clientInfo?.userAgent,
+              },
               result.tokens.refresh_token,
             )
             .pipe(
@@ -96,6 +114,7 @@ export class AuthService {
             );
         }),
         catchError((err) => {
+          console.error(err);
           return of({ left: { message: err.message } });
         }),
       );

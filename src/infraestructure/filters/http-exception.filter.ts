@@ -18,7 +18,7 @@ export class AllExceptionFilter implements ExceptionFilter {
     const exceptionJson =
       exception instanceof HttpException ? exception.getResponse() : exception;
 
-    console.log(exceptionJson);
+    console.error(exception);
 
     const responseError: Either<IDefaultError, any> = {
       left: {

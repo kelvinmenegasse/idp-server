@@ -41,8 +41,8 @@ export class AccountEntity extends EntityM implements IAccount {
     this.password = bcrypt.hashSync(this.password, 10);
   }
 
-  public comparePassword(password: string): Observable<any> {
-    return from(bcrypt.compare(password, this.password));
+  public comparePassword(password: string): any {
+    return bcrypt.compareSync(password, this.password);
   }
 
   public generateRecoveryKey(length = 15): Observable<string> {

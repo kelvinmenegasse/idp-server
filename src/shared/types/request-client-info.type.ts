@@ -1,5 +1,5 @@
 export type RequestClientInfo = {
-  host: string;
+  host?: string;
   ip: string;
   platform: string;
   browserBrand: string;
