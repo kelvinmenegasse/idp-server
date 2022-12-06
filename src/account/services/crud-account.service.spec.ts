@@ -6,11 +6,18 @@ import { of } from 'rxjs';
 import { AccountEntity } from '../entities';
 import { ACCOUNT_REGISTER_STATUS } from 'src/shared/consts';
 import { CreateAccountDto } from '../dto';
+import * as cpfUtilModule from '../../shared/common/cpf.util';
 
 describe('CrudAccountService', () => {
   // * MOCKS
   let service: CrudAccountService;
   let repo: AccountRepository;
+
+  // * spy on CpfValidateAndFilter
+  const mockCpfValidateAndFilter = jest.spyOn(
+    cpfUtilModule,
+    'CpfValidateAndFilter',
+  );
 
   let account = mockAccount;
   let accountEntity = new AccountEntity(account);
@@ -70,6 +77,13 @@ describe('CrudAccountService', () => {
   // * Reset the mock function calls after each test.
   afterEach(() => {
     jest.clearAllMocks();
+
+    // * mock the return value from CpfValidateAndFilter
+    mockCpfValidateAndFilter.mockReturnValue({
+      type: 'success',
+      data: account.cpf,
+      message: 'CPF válido',
+    });
   });
 
   it('should be defined', () => {
@@ -92,6 +106,8 @@ describe('CrudAccountService', () => {
   });
   describe('setup new account', () => {
     it('should return a new account', (done) => {
+      // * Arrange
+
       // * Act
       service.setupNewAccount(account as CreateAccountDto).subscribe({
         next: (result) => {
@@ -105,6 +121,13 @@ describe('CrudAccountService', () => {
     it('should return an invalid result', (done) => {
       // * Arrange
       account = Object.assign(account, { cpf: '00000000000' });
+
+      // * mock the return value from CpfValidateAndFilter
+      mockCpfValidateAndFilter.mockReturnValue({
+        type: 'cpfInvalid',
+        data: account.cpf,
+        message: 'CPF inválido',
+      });
 
       // * Act
       service.setupNewAccount(account as CreateAccountDto).subscribe({
