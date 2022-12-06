@@ -13,8 +13,8 @@ describe('RtTokenRepository', () => {
     id: 1,
     accountId: 1,
     hashedRt: 'laskdjflkasjdflakdjf',
-    exp: new Date().toISOString(),
-    iat: new Date().toISOString(),
+    exp: new Date().getTime(),
+    iat: new Date().getTime(),
     aud: 'idp-server',
     ip: '192.168.0.1',
     platform: 'Windows',
@@ -28,7 +28,7 @@ describe('RtTokenRepository', () => {
   const prismaServiceMock = {
     rtToken: {
       create: jest.fn().mockReturnValue(of(mockRtTokenEntity)),
-      findUnique: jest.fn().mockReturnValue(of(mockRtTokenEntity)),
+      findFirst: jest.fn().mockReturnValue(of(mockRtTokenEntity)),
     },
   };
 
@@ -100,7 +100,7 @@ describe('RtTokenRepository', () => {
 
     it('should be not return a rtToken', (done) => {
       // * Setup
-      prismaServiceMock.rtToken.findUnique.mockReturnValue(of(null));
+      prismaServiceMock.rtToken.findFirst.mockReturnValue(of(null));
 
       repo.findOne({ accountId: null }).subscribe((result) => {
         // * Assert

@@ -7,17 +7,30 @@ Content-Type: application/json
 
 {
     "username": "kelvin",
-    "email": "admin@test.com",
+    "email": "kelvin@francodarocha.sp.gov.br",
     "password": "test1234",
-    "name": "test"
+    "name": "kelvin"
 }
 
 ### SIGNIN
-POST /idp-api/auth/local/signin HTTP/1.1
+POST /idp-api/auth/signin HTTP/1.1
 Host: localhost:3001
 Content-Type: application/json
 
 {
-    "username": "test",
+    "username": "kelvin",
     "password": "test1234"
 }
+
+### LOGOUT
+POST /idp-api/auth/logout HTTP/1.1
+Host: localhost:3001
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsInVzZXJuYW1lIjoia2VsdmluIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDozMDAxIiwiaWF0IjoxNjcwMjUxNDY1LCJleHAiOjE2NzAyNTE1NTF9.B2xH1zEDsuYio6B0xifX61YAbsK3RU1zBj-XfS8Hc4Y
+Content-Type: application/json
+
+
+### REFRESH TOKEN
+POST /idp-api/auth/refresh HTTP/1.1
+Host: localhost:3001
+Authorization: Bearer
+Content-Type: application/json

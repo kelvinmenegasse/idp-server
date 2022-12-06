@@ -18,7 +18,7 @@ describe('AccountRepository', () => {
   const prismaMock = {
     account: {
       create: jest.fn().mockReturnValue(of(mockAccountEntity)),
-      findUnique: jest.fn().mockReturnValue(of(mockAccountEntity)),
+      findFirst: jest.fn().mockReturnValue(of(mockAccountEntity)),
       update: jest.fn().mockReturnValue(of(mockAccountEntity)),
       findMany: jest.fn().mockReturnValue(of(mockAccountsEntities)),
       delete: jest.fn().mockReturnValue(of(mockAccount)),
@@ -75,8 +75,8 @@ describe('AccountRepository', () => {
         next: (result) => {
           // * Verify
           expect(result).toEqual(mockAccount);
-          expect(prismaMock.account.findUnique).toBeCalledTimes(1);
-          expect(prismaMock.account.findUnique).toBeCalledWith({
+          expect(prismaMock.account.findFirst).toBeCalledTimes(1);
+          expect(prismaMock.account.findFirst).toBeCalledWith({
             where: { username },
           });
           expect(result).toMatchObject({ username });
@@ -112,7 +112,7 @@ describe('AccountRepository', () => {
         next: (result) => {
           // * Verify
           expect(result).toEqual(mockAccount);
-          expect(prismaMock.account.findUnique).toBeCalledTimes(1);
+          expect(prismaMock.account.findFirst).toBeCalledTimes(1);
         },
         complete: () => done(),
       });
@@ -144,8 +144,8 @@ describe('AccountRepository', () => {
         next: (result) => {
           // * Verify
           expect(result).toEqual(mockAccount);
-          expect(prismaMock.account.findUnique).toBeCalledTimes(1);
-          expect(prismaMock.account.findUnique).toBeCalledWith({
+          expect(prismaMock.account.findFirst).toBeCalledTimes(1);
+          expect(prismaMock.account.findFirst).toBeCalledWith({
             where: filter,
           });
         },

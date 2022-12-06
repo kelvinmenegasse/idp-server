@@ -97,6 +97,13 @@ export class CrudAccountService {
     getInfoSafely = false,
   ): Observable<Either<IDefaultError, AccountEntity[]>> {
     return this.repo.getMany(queryParams).pipe(
+      map((results) =>
+        results.length > 0
+          ? results.map((result) =>
+              new AccountEntityMapper().mapFrom(result, getInfoSafely),
+            )
+          : null,
+      ),
       map((result) => ({ right: result })),
       catchError((_error) => of({ left: GetAccountError })),
     );
@@ -105,11 +112,13 @@ export class CrudAccountService {
   findUsernameOrCpf(queryParams: {
     username?: string;
     cpf?: string;
+    registerStatus?: string;
   }): Observable<Either<IDefaultError, AccountEntity>> {
     return this.repo
       .findUsernameOrCpf({
         username: queryParams.username,
         cpf: queryParams.cpf,
+        registerStatus: queryParams.registerStatus,
       })
       .pipe(
         map((account) => (account ? { right: account } : { right: null })),
@@ -229,7 +238,10 @@ export class CrudAccountService {
     );
   }
 
-  softDelete(id: number, getInfoSafely = false): Observable<any> {
+  softDelete(
+    id: number,
+    getInfoSafely = false,
+  ): Observable<Either<IDefaultError, AccountEntity>> {
     if (!id) return of({ left: InvalidParametersError });
     return this.repo.softDelete(id).pipe(
       map((result) => new AccountEntityMapper().mapFrom(result, getInfoSafely)),
@@ -238,7 +250,10 @@ export class CrudAccountService {
     );
   }
 
-  restore(id: number, getInfoSafely = false): Observable<any> {
+  restore(
+    id: number,
+    getInfoSafely = false,
+  ): Observable<Either<IDefaultError, AccountEntity>> {
     if (!id) return of({ left: InvalidParametersError });
     return this.repo.restore(id).pipe(
       map((result) => new AccountEntityMapper().mapFrom(result, getInfoSafely)),
@@ -247,7 +262,10 @@ export class CrudAccountService {
     );
   }
 
-  hardDelete(id: number, getInfoSafely = false): Observable<any> {
+  hardDelete(
+    id: number,
+    getInfoSafely = false,
+  ): Observable<Either<IDefaultError, AccountEntity>> {
     if (!id) return of({ left: InvalidParametersError });
     return this.repo.hardDelete(id).pipe(
       map((result) => new AccountEntityMapper().mapFrom(result, getInfoSafely)),

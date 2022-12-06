@@ -20,9 +20,9 @@ model Account {
   recoveryKey String? @db.VarChar(60)
 
   registerStatus String    @db.VarChar(190)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime? @updatedAt
-  deletedAt      DateTime?
+  createdAt      DateTime  @default(now()) @db.DateTime(0)
+  updatedAt      DateTime? @updatedAt @db.DateTime(0)
+  deletedAt      DateTime? @db.DateTime(0)
   RtToken        RtToken[]
 
   // ? name of the table mapped to this model
@@ -37,9 +37,11 @@ model RtToken {
 
   hashedRt String @db.VarChar(190) // ? refresh token hashed
 
-  exp DateTime? // ? expiration date, when the token will be invalid
+  exp Int? // ? expiration date, when the token will be invalid
 
-  iat DateTime? // ? issued at, creation date
+  iat Int? // ? issued at, creation date
+
+  aud String? @db.VarChar(190) // ? audience, who the token is for
 
   ip String? @db.VarChar(190) // ? ip address of the client
 
@@ -51,9 +53,9 @@ model RtToken {
 
   registerStatus String @db.VarChar(190) // ? token status, if it's valid or not (revoked)
 
-  lastUsedAt DateTime? // ? last time the token was used
+  lastUsedAt DateTime? @db.DateTime(0) // ? last time the token was used
 
-  deletedAt DateTime? // ? deleted at, when the token was revoked by the user or the server (logout)
+  deletedAt DateTime? @db.DateTime(0) // ? deleted at, when the token was revoked by the user or the server (logout)
 
   // ? name of the table mapped to this model
   // ? optional

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload, Tokens } from 'src/shared/types';
+import { JwtPayload, JwtPayloadWithRt, Tokens } from 'src/shared/types';
 import { CrudAccountService } from 'src/account/services';
 import { RtTokenService } from '../services';
 import { SigninDto, SignupDto } from '../dto';
@@ -9,9 +9,9 @@ import * as bcrypt from 'bcrypt';
 import { catchError, concatMap, map, Observable, of, zip } from 'rxjs';
 import { Either, isLeft } from 'src/shared/utility-types';
 import { IDefaultError } from 'src/shared/errors';
-import { concat, tap } from 'rxjs/operators';
 import { GetAccountError } from 'src/account/errors';
 import { RequestClientInfo } from 'src/shared/types';
+import { DEFAULT_REGISTER_STATUS } from 'src/shared/consts';
 
 @Injectable()
 export class AuthService {
@@ -74,10 +74,11 @@ export class AuthService {
       .findUsernameOrCpf({
         username: signinDto.username,
         cpf: signinDto.username,
+        registerStatus: DEFAULT_REGISTER_STATUS.ACTIVE,
       })
       .pipe(
         map((result) => {
-          if (isLeft(result))
+          if (isLeft(result) || !result.right)
             throw new Error(GetAccountError.message as string);
           if (!result.right.comparePassword(signinDto.password)) {
             throw new Error('Senha incorreta');
@@ -120,42 +121,128 @@ export class AuthService {
       );
   }
 
-  // todo
-  /* 
-  async logout(accountId: number): Promise<boolean> {
-    await this.prisma.account.updateMany({
-      where: {
-        id: accountId,
-        hashedRt: {
-          not: null,
-        },
-      },
-      data: {
-        hashedRt: null,
-      },
-    });
-    return true;
-  } 
-  */
-  /* 
-  async refreshTokens(accountId: number, rt: string): Promise<Tokens> {
-    const account = await this.prisma.account.findUnique({
-      where: {
-        id: accountId,
-      },
-    });
-    if (!account || !account.hashedRt)
-      throw new ForbiddenException('Access Denied');
-
-    const rtMatches = await bcrypt.compare(account.hashedRt, rt);
-    if (!rtMatches) throw new ForbiddenException('Access Denied');
-
-    const tokens = await this.getTokens(account.id, account.username);
-    await this.updateRtHash(account.id, tokens.refresh_token);
-
-    return tokens;
+  logout(
+    jwtPayloadWithRt: JwtPayloadWithRt,
+  ): Observable<Either<IDefaultError, boolean>> {
+    return this.rtTokenService
+      .getRtTokenByParams({
+        accountId: jwtPayloadWithRt.sub,
+        exp: jwtPayloadWithRt.exp,
+        iat: jwtPayloadWithRt.iat,
+        aud: jwtPayloadWithRt.aud,
+        registerStatus: DEFAULT_REGISTER_STATUS.ACTIVE,
+      })
+      .pipe(
+        map((result) => {
+          if (isLeft(result) || !result.right)
+            throw new Error('Token não encontrado');
+          return result.right;
+        }),
+        concatMap((rtTokens) => {
+          const rtTokenMatched = rtTokens.find((rtToken) =>
+            rtToken.compareRt(jwtPayloadWithRt.refreshToken).pipe(
+              map((result) => result),
+              catchError((err) => of(false)),
+            ),
+          );
+          if (!rtTokenMatched) throw new Error('Token não encontrado');
+          return this.rtTokenService.softDelete(rtTokenMatched.id).pipe(
+            map((result) => {
+              if (isLeft(result))
+                throw new Error(result.left.message as string);
+              return { right: true };
+            }),
+          );
+        }),
+        catchError((err) => of({ left: { message: err.message } })),
+      );
   }
- */
+
+  refreshTokens(
+    jwtPayloadWithRt: JwtPayloadWithRt,
+    clientInfo: RequestClientInfo,
+  ): Observable<Either<IDefaultError, Tokens>> {
+    return this.accountService
+      .findOne({
+        id: jwtPayloadWithRt.sub,
+        registerStatus: DEFAULT_REGISTER_STATUS.ACTIVE,
+      })
+      .pipe(
+        map((accountResult) => {
+          if (isLeft(accountResult) || !accountResult.right)
+            throw new Error('Conta não encontrada ou inativa');
+          return accountResult.right;
+        }),
+        concatMap((account) => {
+          return this.rtTokenService
+            .getRtTokenByParams({
+              accountId: jwtPayloadWithRt.sub,
+              exp: jwtPayloadWithRt.exp,
+              iat: jwtPayloadWithRt.iat,
+              aud: jwtPayloadWithRt.aud,
+              registerStatus: DEFAULT_REGISTER_STATUS.ACTIVE,
+            })
+            .pipe(
+              map((result) => {
+                if (isLeft(result) || !result.right)
+                  throw new Error('Token não encontrado');
+                return result.right;
+              }),
+            );
+        }),
+        concatMap((rtTokens) => {
+          const rtTokenMatched = rtTokens.find((rtToken) =>
+            rtToken
+              .compareRt(jwtPayloadWithRt.refreshToken)
+              .pipe(map((result) => result)),
+          );
+          if (!rtTokenMatched) throw new Error('Token não encontrado');
+          return this.rtTokenService.softDelete(rtTokenMatched.id).pipe(
+            map((result) => {
+              if (isLeft(result))
+                throw new Error(result.left.message as string);
+              return { right: true };
+            }),
+          );
+        }),
+        concatMap((softDeleteResult) => {
+          return this.getTokens(
+            jwtPayloadWithRt.sub,
+            jwtPayloadWithRt.username,
+          ).pipe(
+            map((resultTokens) => {
+              if (isLeft(resultTokens))
+                throw new Error(resultTokens.left.message as string);
+              return { tokens: resultTokens.right };
+            }),
+          );
+        }),
+        concatMap((result) => {
+          return this.rtTokenService
+            .create(
+              {
+                accountId: jwtPayloadWithRt.sub,
+                browserBrand: clientInfo.browserBrand,
+                ip: clientInfo?.ip,
+                platform: clientInfo?.platform,
+                userAgent: clientInfo?.userAgent,
+              },
+              result.tokens.refresh_token,
+            )
+            .pipe(
+              map((resultRtToken) => {
+                if (isLeft(resultRtToken))
+                  throw new Error(resultRtToken.left.message as string);
+                return { right: result.tokens };
+              }),
+            );
+        }),
+        catchError((err) => {
+          console.error(err);
+          return of({ left: { message: err.message } });
+        }),
+      );
+  }
 
   getTokens(
     accountId: number,

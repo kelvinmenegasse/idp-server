@@ -1,13 +1,13 @@
-import * as bcrypt from 'bcrypt';
-import { from, Observable, of } from 'rxjs';
+import * as argon from 'argon2';
+import { catchError, from, map, Observable, tap } from 'rxjs';
 import { EntityM } from '../../shared/base';
 
 export type IRtToken = {
   id?: number;
   accountId: number;
   hashedRt: string;
-  exp: Date | string | null;
-  iat: Date | string | null;
+  exp: number | null;
+  iat: number | null;
   aud: string | null;
   ip: string | null;
   platform: string | null;
@@ -22,8 +22,8 @@ export class RtTokenEntity extends EntityM implements IRtToken {
   id?: number;
   accountId: number;
   hashedRt: string;
-  exp: Date | string | null;
-  iat: Date | string | null;
+  exp: number | null;
+  iat: number | null;
   aud: string | null;
   ip: string | null;
   platform: string | null;
@@ -38,12 +38,18 @@ export class RtTokenEntity extends EntityM implements IRtToken {
     Object.assign(this, init);
   }
 
-  public compareRt(rt: string): Observable<any> {
-    return from(bcrypt.compare(rt, this.hashedRt));
+  public compareRt(rt: string): Observable<boolean> {
+    return from(argon.verify(this.hashedRt, rt)).pipe(map((result) => result));
   }
 
-  public hashRt(rt: string | null = null): void {
+  public hashRt(rt: string | null = null): Observable<RtTokenEntity> {
     this.hashedRt = rt ?? this.hashedRt;
-    this.hashedRt = bcrypt.hashSync(this.hashedRt, 10);
+    return from(argon.hash(this.hashedRt)).pipe(
+      map((hashedRt) => {
+        if (!hashedRt) return null;
+        this.hashedRt = hashedRt;
+        return this;
+      }),
+    );
   }
 }

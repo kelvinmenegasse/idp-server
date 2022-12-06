@@ -20,7 +20,7 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
   }
 
   findOne(params: Partial<AccountEntity>): Observable<AccountEntity> {
-    return from(this.database.account.findUnique({ where: params })).pipe(
+    return from(this.database.account.findFirst({ where: params })).pipe(
       map((account) => (account ? new AccountEntity(account) : null)),
       catchError((err) => {
         throw new Error(err);
@@ -31,6 +31,7 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
   findUsernameOrCpf(params: {
     username: string;
     cpf: string;
+    registerStatus: string;
   }): Observable<AccountEntity> {
     // * check if username or cpf already exists in database
     return from(
@@ -39,9 +40,11 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
           OR: [
             {
               username: params.username,
+              registerStatus: params.registerStatus,
             },
             {
               cpf: params.cpf,
+              registerStatus: params.registerStatus,
             },
           ],
         },
@@ -72,7 +75,7 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
   }
 
   getById(id: number): Observable<AccountEntity> {
-    return from(this.database.account.findUnique({ where: { id } })).pipe(
+    return from(this.database.account.findFirst({ where: { id } })).pipe(
       map((account) => (account ? new AccountEntity(account) : null)),
       catchError((err) => {
         throw new Error(err);
@@ -90,7 +93,7 @@ export class AccountRepository implements RepositoryM<AccountEntity> {
   }
 
   getOne(filter: Partial<AccountEntity>): Observable<AccountEntity> {
-    return from(this.database.account.findUnique({ where: filter })).pipe(
+    return from(this.database.account.findFirst({ where: filter })).pipe(
       map((account) => (account ? new AccountEntity(account) : null)),
       catchError((err) => {
         throw new Error(err);

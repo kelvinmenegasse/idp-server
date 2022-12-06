@@ -11,7 +11,11 @@ import {
 import { Request } from 'express';
 import { Observable, of } from 'rxjs';
 import { IDefaultError } from 'src/shared/errors';
-import { RequestClientInfo } from 'src/shared/types';
+import {
+  JwtPayload,
+  JwtPayloadWithRt,
+  RequestClientInfo,
+} from 'src/shared/types';
 import { Either } from 'src/shared/utility-types';
 import {
   Public,
@@ -41,7 +45,7 @@ export class AuthController {
   }
 
   @Public()
-  @Post('local/signin')
+  @Post('signin')
   @HttpCode(HttpStatus.OK)
   signinLocal(
     @Body() signinDto: SigninDto,
@@ -51,12 +55,14 @@ export class AuthController {
     return this.authService.signinLocal(signinDto, clientInfo);
   }
 
-  // todo
-  /* 
+  @Public()
+  @UseGuards(RtGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  logout(@GetCurrentAccountId() accountId: number): Promise<boolean> {
-    return this.authService.logout(accountId);
+  logout(
+    @GetCurrentAccount() jwtPayloadWithRt: JwtPayloadWithRt,
+  ): Observable<Either<IDefaultError, boolean>> {
+    return this.authService.logout(jwtPayloadWithRt);
   }
 
   @Public()
@@ -64,10 +70,9 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   refreshTokens(
-    @GetCurrentAccountId() accountId: number,
-    @GetCurrentAccount('refreshToken') refreshToken: string,
-  ): Promise<Tokens> {
-    return this.authService.refreshTokens(accountId, refreshToken); 
+    @GetCurrentAccount() jwtPayloadWithRt: JwtPayloadWithRt,
+    @GetRequestClientInfo() clientInfo: RequestClientInfo,
+  ): Observable<Either<IDefaultError, Tokens>> {
+    return this.authService.refreshTokens(jwtPayloadWithRt, clientInfo);
   }
-  */
 }

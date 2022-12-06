@@ -13,10 +13,15 @@ export class AllExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const request = ctx.getRequest();
-    const status = exception.getStatus();
 
-    const exceptionJson =
-      exception instanceof HttpException ? exception.getResponse() : exception;
+    let status = HttpStatus.INTERNAL_SERVER_ERROR;
+    let exceptionJson = exception;
+
+    if (exception instanceof HttpException) {
+      status = exception.getStatus();
+
+      exceptionJson = exception.getResponse();
+    }
 
     console.error(exception);
 
