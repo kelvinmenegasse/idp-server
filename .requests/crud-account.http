@@ -44,3 +44,12 @@ Host: localhost:3001
 ### Permanently Delete
 DELETE /idp-api/accounts/hard-delete/1 HTTP/1.1
 Host: localhost:3001
+
+### Send recovery keys
+PATCH /idp-api/accounts/send-recovery-keys HTTP/1.1
+Host: localhost:3001
+Content-Type: application/json
+
+{
+    "ids": [5, 7]
+}

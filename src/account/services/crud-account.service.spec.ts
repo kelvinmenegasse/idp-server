@@ -7,11 +7,13 @@ import { AccountEntity } from '../entities';
 import { ACCOUNT_REGISTER_STATUS } from 'src/shared/consts';
 import { CreateAccountDto } from '../dto';
 import * as cpfUtilModule from '../../shared/common/cpf.util';
+import { AccountMailService } from './account-mail.service';
 
 describe('CrudAccountService', () => {
   // * MOCKS
   let service: CrudAccountService;
   let repo: AccountRepository;
+  let accountMailService: AccountMailService;
 
   // * spy on CpfValidateAndFilter
   const mockCpfValidateAndFilter = jest.spyOn(
@@ -54,6 +56,10 @@ describe('CrudAccountService', () => {
     hardDelete: jest.fn().mockReturnValue(of(true)),
   };
 
+  const mockAccountMailService = {
+    sendRecoveryKey: jest.fn().mockReturnValue(of(true)),
+  };
+
   beforeEach(async () => {
     account = JSON.parse(JSON.stringify(mockAccount));
     accountEntity = new AccountEntity(account);
@@ -67,11 +73,16 @@ describe('CrudAccountService', () => {
           provide: AccountRepository,
           useValue: mockRepository,
         },
+        {
+          provide: AccountMailService,
+          useValue: mockAccountMailService,
+        },
       ],
     }).compile();
 
     service = module.get<CrudAccountService>(CrudAccountService);
     repo = module.get<AccountRepository>(AccountRepository);
+    accountMailService = module.get<AccountMailService>(AccountMailService);
   });
 
   // * Reset the mock function calls after each test.
@@ -89,6 +100,7 @@ describe('CrudAccountService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
     expect(repo).toBeDefined();
+    expect(accountMailService).toBeDefined();
   });
 
   describe('find account', () => {

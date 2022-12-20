@@ -13,6 +13,7 @@ export const mockAccount: IAccount = {
   updatedAt: null,
   deletedAt: null,
   recoveryKey: null,
+  recoveryKeyExpiration: null,
 };
 
 export const mockAccounts: IAccount[] = [mockAccount];

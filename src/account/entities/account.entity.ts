@@ -1,5 +1,4 @@
 import * as bcrypt from 'bcrypt';
-import { from, Observable, of } from 'rxjs';
 import { EntityM } from '../../shared/base';
 
 export type IAccount = {
@@ -10,13 +9,17 @@ export type IAccount = {
   username: string;
   password: string;
   recoveryKey?: string | null;
+  recoveryKeyExpiration?: Date | string | null;
   registerStatus: string;
   createdAt?: Date | string;
   updatedAt?: Date | string | null;
   deletedAt?: Date | string | null;
 };
 
-export type IPublicAccount = Omit<IAccount, 'password' | 'recoveryKey'>;
+export type IPublicAccount = Omit<
+  IAccount,
+  'password' | 'recoveryKey' | 'recoveryKeyExpiration'
+>;
 
 export class AccountEntity extends EntityM implements IAccount {
   id: number;
@@ -26,6 +29,7 @@ export class AccountEntity extends EntityM implements IAccount {
   username: string;
   password: string;
   recoveryKey: string | null;
+  recoveryKeyExpiration?: Date | string | null;
   registerStatus: string;
   createdAt: Date | string | null;
   updatedAt: Date | string | null;
@@ -45,28 +49,14 @@ export class AccountEntity extends EntityM implements IAccount {
     return bcrypt.compareSync(password, this.password);
   }
 
-  public generateRecoveryKey(length = 15): Observable<string> {
-    let key = '';
-
-    const characteres =
-      '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-    for (let i = 0; i < length; i++) {
-      key += characteres.charAt(Math.floor(Math.random() * characteres.length));
-    }
-
-    this.recoveryKey = bcrypt.hashSync(key, 10);
-
-    return of(key);
-  }
-
   // * getInfoSafely is a flag to return a public version of the account
   public getAccountInfo(
     params: { getInfoSafely: boolean } = null,
   ): IAccount | IPublicAccount {
     if (params) {
       if (params.getInfoSafely) {
-        const { password, recoveryKey, ...account } = this;
+        const { password, recoveryKey, recoveryKeyExpiration, ...account } =
+          this;
         return account;
       }
     }

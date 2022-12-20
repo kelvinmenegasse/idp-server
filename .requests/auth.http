@@ -6,10 +6,10 @@ Host: localhost:3001
 Content-Type: application/json
 
 {
-    "username": "kelvin",
-    "email": "kelvin@francodarocha.sp.gov.br",
+    "username": "thiago.arcanjo",
+    "email": "thiago.arcanjo@francodarocha.sp.gov.br",
     "password": "test1234",
-    "name": "kelvin"
+    "name": "thiago"
 }
 
 ### SIGNIN
@@ -18,19 +18,19 @@ Host: localhost:3001
 Content-Type: application/json
 
 {
-    "username": "kelvin",
+    "username": "thiago.arcanjo",
     "password": "test1234"
 }
 
 ### LOGOUT
 POST /idp-api/auth/logout HTTP/1.1
 Host: localhost:3001
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsInVzZXJuYW1lIjoia2VsdmluIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDozMDAxIiwiaWF0IjoxNjcwMjUxNDY1LCJleHAiOjE2NzAyNTE1NTF9.B2xH1zEDsuYio6B0xifX61YAbsK3RU1zBj-XfS8Hc4Y
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjYsInVzZXJuYW1lIjoidGhpYWdvLmFyY2Fuam8iLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjMwMDEiLCJpYXQiOjE2NzEwMzY0MzYsImV4cCI6MTY3MzYyODQzNn0.qqnyYDMm-530juuO6lbwhE7dryoxQjwplTQfQ883gvo
 Content-Type: application/json
 
 
 ### REFRESH TOKEN
 POST /idp-api/auth/refresh HTTP/1.1
 Host: localhost:3001
-Authorization: Bearer
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjYsInVzZXJuYW1lIjoidGhpYWdvLmFyY2Fuam8iLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjMwMDEiLCJpYXQiOjE2NzEwMzY0MjIsImV4cCI6MTY3MzYyODQyMn0.PbaMQwjLmdl1yaghBnIYq_PKoO9KVTdwQRIDF5nibvI
 Content-Type: application/json

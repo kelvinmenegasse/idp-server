@@ -44,3 +44,8 @@ export const RestoreAccountError = {
   name: 'ErrorRestoreAccount',
   message: 'Erro: Não foi possível restaurar a conta',
 } as IDefaultError;
+
+export const CreateRecoveryKeyError = {
+  name: 'ErrorCreateRecoveryKey',
+  message: 'Erro: Não foi possível criar uma chave de recuperação para a conta',
+} as IDefaultError;

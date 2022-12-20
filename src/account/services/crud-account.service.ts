@@ -5,12 +5,22 @@ import { AccountEntityMapper } from '../mappers';
 import { AccountRepository } from '../repositories';
 import { ACCOUNT_REGISTER_STATUS } from '../../shared/consts';
 import { Either, isLeft } from '../../shared/utility-types';
-import { isEmptyString } from '../../shared/common';
+import { isEmptyString, randomStringGenerator } from '../../shared/common';
 import { IDefaultError, InvalidParametersError } from '../../shared/errors';
 import { CpfValidateAndFilter } from '../../shared/common';
-import { Observable, map, catchError, of, concatMap, tap } from 'rxjs';
+import {
+  Observable,
+  map,
+  catchError,
+  of,
+  concatMap,
+  tap,
+  forkJoin,
+} from 'rxjs';
+import * as bcrypt from 'bcrypt';
 import {
   CreateAccountError,
+  CreateRecoveryKeyError,
   ExistsCpfError,
   ExistsUsernameError,
   ExistsUsernameOrCpfError,
@@ -20,10 +30,14 @@ import {
   SoftDeleteAccountError,
   UpdateAccountError,
 } from '../errors';
+import { AccountMailService } from './account-mail.service';
 
 @Injectable()
 export class CrudAccountService {
-  constructor(private repo: AccountRepository) {}
+  constructor(
+    private repo: AccountRepository,
+    private mailService: AccountMailService,
+  ) {}
 
   setupNewAccount(
     data: Partial<CreateAccountDto>,
@@ -235,6 +249,97 @@ export class CrudAccountService {
           },
         }),
       ),
+    );
+  }
+
+  sendRecoveryKeyToAccounts(
+    ids: number[],
+  ): Observable<Either<IDefaultError, any>> {
+    if (!ids || ids.length === 0) return of({ left: InvalidParametersError });
+
+    return forkJoin(ids.map((id) => this.sendRecoveryKeyToAccount(id))).pipe(
+      map((result) => {
+        const errors: Either<IDefaultError, any>[] = result.filter((res) =>
+          isLeft(res),
+        );
+
+        if (errors.length >= ids.length) {
+          // * merge all message errors into one, separated by dot and space
+          const errorString = errors.reduce(
+            (acc, error) => acc + error.left.message + '. ',
+            '',
+          );
+
+          throw new Error(
+            'Não foi possível gerar a chave de recuperação para uma ou mais contas. Erro: ' +
+              errorString,
+          );
+        }
+        return result;
+      }),
+      map((result) => ({ right: result })),
+      catchError((error) => {
+        console.error(error);
+        return of({
+          left: {
+            message: error.message,
+          } as IDefaultError,
+        });
+      }),
+    );
+  }
+
+  sendRecoveryKeyToAccount(id: number) {
+    if (!id) return of({ left: InvalidParametersError });
+
+    return this.createRecoveryKey(id).pipe(
+      concatMap((createRecoveryKeyResult) => {
+        if (isLeft(createRecoveryKeyResult)) {
+          throw new Error(createRecoveryKeyResult.left.message as string);
+        }
+        if (!createRecoveryKeyResult.right.account.email) {
+          throw new Error('Email não encontrado.');
+        }
+        return this.mailService.sendRecoveryKey(createRecoveryKeyResult.right);
+      }),
+      map((result) => ({ right: result })),
+      catchError((error) => {
+        console.error(error);
+        return of({
+          left: {
+            message: error.message,
+          } as IDefaultError,
+        });
+      }),
+    );
+  }
+
+  createRecoveryKey(
+    id: number,
+  ): Observable<
+    Either<IDefaultError, { account: AccountEntity; recoveryKey: string }>
+  > {
+    if (!id) return of({ left: InvalidParametersError });
+
+    const recoveryKey = randomStringGenerator();
+
+    return this.getById(id).pipe(
+      concatMap((res) => {
+        if (isLeft(res)) throw new Error(res.left.message as string);
+        return this.repo
+          .update(id, {
+            recoveryKey: bcrypt.hashSync(recoveryKey, 10),
+            recoveryKeyExpiration: new Date(),
+          })
+          .pipe(
+            map((result) => new AccountEntityMapper().mapFrom(result, false)),
+            map((account) => ({ right: { account, recoveryKey } })),
+            catchError((error) => {
+              console.error(error);
+              return of({ left: CreateRecoveryKeyError });
+            }),
+          );
+      }),
     );
   }
 

@@ -7,7 +7,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { IDefaultError } from 'src/shared/errors';
 import { Either } from 'src/shared/utility-types';
 import { CreateAccountDto, UpdateAccountDto } from '../dto';
@@ -73,5 +73,12 @@ export class CrudAccountController {
     @Param('id') id: number,
   ): Observable<Either<IDefaultError, IPublicAccount>> {
     return this.crudAccountService.hardDelete(Number(id));
+  }
+
+  @Patch('send-recovery-keys')
+  sendRecoveryKeys(
+    @Body('ids') ids: number[],
+  ): Observable<Either<IDefaultError, IPublicAccount>> {
+    return this.crudAccountService.sendRecoveryKeyToAccounts(ids);
   }
 }

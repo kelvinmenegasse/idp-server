@@ -13,6 +13,7 @@ export class AccountEntityMapper extends Mapper<
     if (getInfoSafely) {
       delete data.password;
       delete data.recoveryKey;
+      delete data.recoveryKeyExpiration;
     }
     const account = new AccountEntity(data);
     return account;

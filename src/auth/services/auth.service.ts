@@ -251,7 +251,7 @@ export class AuthService {
     const jwtPayload: Partial<JwtPayload> = {
       sub: accountId,
       username: username,
-      iss: this.config.get<string>('APP_DOMAIN'),
+      iss: this.config.get<string>('APP_DOMAIN_BACKEND'),
     };
 
     const atPromise = this.jwtService.signAsync(jwtPayload, {

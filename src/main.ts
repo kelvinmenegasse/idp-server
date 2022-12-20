@@ -29,12 +29,14 @@ async function bootstrap() {
   await app.listen(configService.get('app.port'), '0.0.0.0');
 
   // * get date and time
-  const date = new Date().toISOString();
+  const date = new Date().toLocaleString(<string>configService.get('LOCALE'), {
+    timeZone: <string>configService.get('app.TZ'),
+  });
 
   console.log(
     `Server ${configService.get(
       'app.apiPrefix',
-    )} is running on port ${configService.get('app.port')} / ${date}`,
+    )} is running on port ${configService.get('app.port')} | ${date}`,
   );
 }
 
